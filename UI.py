@@ -24,6 +24,7 @@ Quick map of this file:
     _draw_avatar           - the player icon
     _arrow_polygon         - the (x, y) points that make up one arrow's outline
     _draw_hud              - the small "steps / time" text at the bottom
+    _draw_victory          - the "goal reached" screen shown once the player is on G
     draw_eeg_scope         - optional live EEG trace panel
 """
 import numpy as np
@@ -59,6 +60,8 @@ class UI:
         pg.font.init()
         self.font = pg.font.SysFont("consolas", 16)
         self.small = pg.font.SysFont("consolas", 13)
+        self.big = pg.font.SysFont("consolas", 72, bold=True)   # victory screen title
+        self.medium = pg.font.SysFont("consolas", 28)           # victory screen stats
 
         # avatar image
         img = pg.image.load("rubber_duck.png").convert_alpha()
@@ -73,15 +76,22 @@ class UI:
                       for d, f in FREQUENCIES.items()}
 
     # --------------- public API ---------------
-    def draw(self, maze, pos_rc, armed_dir, steps=0, elapsed_s=0.0):
+    def draw(self, maze, pos_rc, armed_dir, steps=0, elapsed_s=0.0, won=False):
         """Draw one full frame: sidebar, maze, avatar, HUD. Call once per frame."""
-        # left panel
-        self._draw_sidebar(armed_dir)
+        # wipe the previous frame so arrows that are hidden this frame don't linger
+        self.surf.fill(BG)
+        # arrows: in a corner, hide the ones pointing into a wall; once the
+        # goal is reached, hide them all (nothing left to steer)
+        if not won:
+            hidden = maze.blocked_dirs(pos_rc) if maze.is_corner(pos_rc) else set()
+            self._draw_sidebar(armed_dir, hidden)
         # maze area (right)
         self._draw_maze(maze)
         self._draw_avatar(pos_rc, maze)
         # small HUD (now includes steps + timer)
         self._draw_hud(maze, pos_rc, steps, elapsed_s)
+        if won:
+            self._draw_victory(steps, elapsed_s)
 
 
     # --------------- layout helpers ---------------
@@ -94,8 +104,8 @@ class UI:
         return (self.surf.get_width() - self.sidebar_px) // 2, 0
 
     # --------------- drawing ---------------
-    def _draw_sidebar(self, armed_dir):
-
+    def _draw_sidebar(self, armed_dir, hidden_dirs=()):
+        """Draw one flickering arrow in each window corner, skipping any direction in `hidden_dirs`."""
         size = ARROW_SIZE_PX
         margin = size + 20
         w, h = self.surf.get_width(), self.surf.get_height()
@@ -107,6 +117,8 @@ class UI:
         }
         frame = getattr(self, "frame_idx", 0)
         for d, (cx, cy) in corners.items():
+            if d in hidden_dirs:
+                continue
             self._draw_one_arrow(d, cx, cy, size, frame, is_armed=(armed_dir == d),
                                  draw_label=False, label_dx=0)
 
@@ -322,6 +334,24 @@ class UI:
         base_y = self.surf.get_height() - 40  # leave 40px bottom margin
         self.surf.blit(img1, (12, base_y))
         self.surf.blit(img2, (12, base_y + 18))
+
+    def _draw_victory(self, steps, elapsed_s):
+        """Dim the whole window and show a centered "goal reached" message with the final steps/time."""
+        w, h = self.surf.get_size()
+        shade = pg.Surface((w, h), pg.SRCALPHA)
+        shade.fill((0, 0, 0, 190))
+        self.surf.blit(shade, (0, 0))
+
+        mins = int(elapsed_s // 60)
+        secs = int(elapsed_s % 60)
+        title = self.big.render("Goal reached!", True, GOAL)
+        stats = self.medium.render(f"steps: {steps}   time: {mins:02d}:{secs:02d}", True, TEXT)
+        hint = self.font.render("press Esc to quit", True, TEXT)
+
+        cx, cy = w // 2, h // 2
+        self.surf.blit(title, title.get_rect(center=(cx, cy - 50)))
+        self.surf.blit(stats, stats.get_rect(center=(cx, cy + 20)))
+        self.surf.blit(hint, hint.get_rect(center=(cx, cy + 65)))
 
     def draw_eeg_scope(self, eeg_8xN: np.ndarray):
         """
