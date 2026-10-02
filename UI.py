@@ -81,11 +81,10 @@ class UI:
         """Draw one full frame: sidebar, maze, avatar, HUD. Call once per frame."""
         # wipe the previous frame so arrows that are hidden this frame don't linger
         self.surf.fill(BG)
-        # arrows: in a corner, hide the ones pointing into a wall; once the
-        # goal is reached, hide them all (nothing left to steer)
+        # arrows: hide the ones pointing into a wall; once the goal is
+        # reached, hide them all (nothing left to steer)
         if not won:
-            hidden = maze.blocked_dirs(pos_rc) if maze.is_corner(pos_rc) else set()
-            self._draw_sidebar(armed_dir, hidden)
+            self._draw_sidebar(armed_dir, maze.blocked_dirs(pos_rc))
         # maze area (right)
         self._draw_maze(maze)
         self._draw_avatar(pos_rc, maze)
