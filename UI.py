@@ -56,10 +56,13 @@ class UI:
         self.surf = surface
         self.cell_px = cell_px
         self.sidebar_px = sidebar_px
+        self.info_open = False
 
         pg.font.init()
         self.font = pg.font.SysFont("consolas", 16)
         self.small = pg.font.SysFont("consolas", 13)
+        self.medium = pg.font.SysFont("consolas", 22)
+        self.big = pg.font.SysFont("consolas", 36)
 
         # avatar image
         img = pg.image.load("rubber_duck.png").convert_alpha()
