@@ -85,14 +85,3 @@ class Maze:
         """Set of directions you can NOT walk in from rc (wall or edge of the grid)."""
         open_dirs = {d for _, d in self.neighbors(rc)}
         return {d for d in DIRS if d not in open_dirs}
-
-    def is_corner(self, rc):
-        """
-        True if rc is walled in on at least one vertical side (N/S) AND at
-        least one horizontal side (E/W), e.g. a room corner, a bend in a
-        corridor, or a dead end. A straight corridor or a single wall
-        doesn't count.
-        """
-        blocked = self.blocked_dirs(rc)
-        return (any(VEC[d][0] != 0 for d in blocked) and
-                any(VEC[d][1] != 0 for d in blocked))
