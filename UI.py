@@ -61,6 +61,8 @@ class UI:
         pg.font.init()
         self.font = pg.font.SysFont("consolas", 16)
         self.small = pg.font.SysFont("consolas", 13)
+        self.medium = pg.font.SysFont("consolas", 24)
+        self.big = pg.font.SysFont("consolas", 38, bold=True)
 
         # avatar image
         img = pg.image.load("rubber_duck.png").convert_alpha()
