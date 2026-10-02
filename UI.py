@@ -60,6 +60,9 @@ class UI:
         pg.font.init()
         self.font = pg.font.SysFont("consolas", 16)
         self.small = pg.font.SysFont("consolas", 13)
+        self.big = pg.font.SysFont("consolas", 72, bold=True)   # victory screen title
+        self.medium = pg.font.SysFont("consolas", 28)           # victory screen stats
+        self.info_open = False
 
         # avatar image
         img = pg.image.load("rubber_duck.png").convert_alpha()
@@ -88,6 +91,9 @@ class UI:
         self._draw_avatar(pos_rc, maze)
         # small HUD (now includes steps + timer)
         self._draw_hud(maze, pos_rc, steps, elapsed_s)
+        if won:
+            self._draw_victory(steps, elapsed_s)
+        self._draw_info_overlay()
 
 
     # --------------- layout helpers ---------------
