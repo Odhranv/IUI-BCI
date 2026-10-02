@@ -37,6 +37,7 @@ class Controller:
 
         self.step_count = 0
         self.elapsed_time = 0.0
+        self.won = False  # True once the player reaches the goal cell
 
     def _try_step(self, d):
         """
@@ -50,6 +51,8 @@ class Controller:
             self.pos_rc = nxt
             self.heading = d
             self.step_count += 1
+            if nxt == self.maze.goal:
+                self.won = True
             return True
         return False
 
@@ -71,5 +74,7 @@ class Controller:
 
     def update(self, dt):
         """Advance game state by `dt` seconds. Call once per frame from Main.py."""
+        if self.won:
+            return  # goal reached: freeze the timer and ignore further input
         self.elapsed_time += dt
         self.handle_bci(dt)

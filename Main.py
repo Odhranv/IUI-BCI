@@ -188,7 +188,8 @@ def main():
             ctrl.pos_rc,
             ctrl.armed_dir,
             steps=ctrl.step_count,
-            elapsed_s=ctrl.elapsed_time
+            elapsed_s=ctrl.elapsed_time,
+            won=ctrl.won
         )
 
         pg.display.flip()
