@@ -59,6 +59,7 @@ class UI:
         pg.font.init()
         self.font = pg.font.SysFont("consolas", 16)
         self.small = pg.font.SysFont("consolas", 13)
+        self.info_open = False
 
         # avatar image
         img = pg.image.load("rubber_duck.png").convert_alpha()
@@ -82,6 +83,7 @@ class UI:
         self._draw_avatar(pos_rc, maze)
         # small HUD (now includes steps + timer)
         self._draw_hud(maze, pos_rc, steps, elapsed_s)
+        self._draw_info_overlay()
 
 
     # --------------- layout helpers ---------------
@@ -92,6 +94,64 @@ class UI:
             offy = (self.surf.get_height() - maze.rows * self.cell_px) // 2
             return max(0, offx), max(0, offy)
         return (self.surf.get_width() - self.sidebar_px) // 2, 0
+
+    def _info_button_rect(self):
+        return pg.Rect(self.surf.get_width() // 2 - 44, 12, 88, 32)
+
+    def _info_popup_rect(self):
+        width = min(480, self.surf.get_width() - 32)
+        height = min(230, self.surf.get_height() - 32)
+        return pg.Rect(
+            (self.surf.get_width() - width) // 2,
+            (self.surf.get_height() - height) // 2,
+            width,
+            height,
+        )
+
+    def handle_click(self, pos):
+        """Handle clicks on the info button or the popup's close button."""
+        if self.info_open:
+            box = self._info_popup_rect()
+            close_rect = pg.Rect(box.right - 88, box.bottom - 48, 72, 32)
+            if close_rect.collidepoint(pos):
+                self.info_open = False
+        elif self._info_button_rect().collidepoint(pos):
+            self.info_open = True
+
+    def _draw_info_overlay(self):
+        button = self._info_button_rect()
+        pg.draw.rect(self.surf, PANEL, button, border_radius=4)
+        pg.draw.rect(self.surf, TEXT, button, 1, border_radius=4)
+        label = self.small.render("Info", True, TEXT)
+        self.surf.blit(label, label.get_rect(center=button.center))
+
+        if not self.info_open:
+            return
+
+        shade = pg.Surface(self.surf.get_size(), pg.SRCALPHA)
+        shade.fill((0, 0, 0, 150))
+        self.surf.blit(shade, (0, 0))
+
+        box = self._info_popup_rect()
+        pg.draw.rect(self.surf, PANEL, box, border_radius=4)
+        pg.draw.rect(self.surf, TEXT, box, 2, border_radius=4)
+
+        title = self.font.render("How to play", True, TEXT)
+        self.surf.blit(title, (box.left + 20, box.top + 20))
+        lines = (
+            "Look at a flickering cue to select its direction.",
+            "North, East, South, and West move the player.",
+            "Steps and elapsed time appear in the lower-left HUD.",
+            "Press Escape or click Close to dismiss.",
+        )
+        for index, line in enumerate(lines):
+            text = self.small.render(line, True, TEXT)
+            self.surf.blit(text, (box.left + 20, box.top + 60 + index * 24))
+
+        close_rect = pg.Rect(box.right - 88, box.bottom - 48, 72, 32)
+        pg.draw.rect(self.surf, BG, close_rect, border_radius=4)
+        close = self.small.render("Close", True, TEXT)
+        self.surf.blit(close, close.get_rect(center=close_rect.center))
 
     # --------------- drawing ---------------
     def _draw_sidebar(self, armed_dir):

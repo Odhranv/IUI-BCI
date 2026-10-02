@@ -171,10 +171,16 @@ def main():
         for ev in pg.event.get():
             if ev.type == pg.QUIT:
                 running = False
+            elif ev.type == pg.MOUSEBUTTONDOWN and ev.button == 1:
+                ui.handle_click(ev.pos)
             elif ev.type == pg.KEYDOWN and ev.key == pg.K_ESCAPE:
-                running = False
+                if ui.info_open:
+                    ui.info_open = False
+                else:
+                    running = False
 
-        ctrl.update(dt)
+        if not ui.info_open:
+            ctrl.update(dt)
 
         # draw frame
         ui.draw(
